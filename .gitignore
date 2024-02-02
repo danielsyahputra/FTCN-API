@@ -1,0 +1,15 @@
+checkpoints/
+*.py[cod]
+*.pyc.*
+*$py.class
+.vscode/
+output/
+examples/*.pth
+*/__pycache__/
+*.ipynb
+*.ipynb_checkpoints
+*.mp4
+*.avi
+env
+venv
+*.mov
