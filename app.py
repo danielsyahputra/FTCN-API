@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import shutil
 import subprocess
@@ -14,7 +15,7 @@ def run_video_detection(video_path: str):
     global processing_lock
     try:
         processing_lock = True
-        cmd = f"CUDA_VISIBLE_DEVICES=5 python test_on_raw_video.py {video_path} output"
+        cmd = f"python test_on_raw_video.py {video_path} output"
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Error running video detection: {str(e)}")
@@ -38,7 +39,7 @@ async def detect_video(background_tasks: BackgroundTasks, video: UploadFile = Fi
 
     return JSONResponse(content={"message": "Video detection in progress"}, status_code=202)
 
-@app.post("/video-status/{video_file}", tags=["Status"])
+@app.post("/video-status/", tags=["Status"])
 async def video_status(video: UploadFile = File(...)):
     # Check if the video file exists in the output directory to determine the status
     output_path = f"output/{video.filename.split('.')[0]}.avi"  # Update with your actual output directory
