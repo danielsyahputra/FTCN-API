@@ -6,10 +6,16 @@ from pydantic import BaseModel
 import shutil
 import subprocess
 import os
+import exiftool
 
 app = FastAPI()
 
 processing_lock = False
+
+async def get_metadata(file_path):
+    with exiftool.ExifToolHelper() as et:
+        metadata = et.get_metadata([file_path])
+    return metadata[0]
 
 def run_video_detection(video_path: str):
     global processing_lock
@@ -37,7 +43,9 @@ async def detect_video(background_tasks: BackgroundTasks, video: UploadFile = Fi
     # Run video detection in the background
     background_tasks.add_task(run_video_detection, temp_video_path)
 
-    return JSONResponse(content={"message": "Video detection in progress"}, status_code=202)
+    metadata = await get_metadata(temp_video_path)
+
+    return JSONResponse(content={"message": "Video detection in progress", "metadata": metadata}, status_code=202)
 
 @app.post("/video-status/", tags=["Status"])
 async def video_status(video: UploadFile = File(...)):
